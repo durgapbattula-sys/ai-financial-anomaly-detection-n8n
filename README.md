@@ -106,3 +106,10 @@ Metrics were calculated against synthetic anomaly labels on the same dataset use
 ## Project Status
 
 Functional local batch-processing prototype.
+## n8n Workflow Architecture
+
+![Financial Anomaly Detection Workflow](screenshots/financial_anomaly_workflow.png)
+
+This illustration summarizes the n8n workflow for transaction processing,
+PostgreSQL storage, Ollama AI explanations, and Gmail alert handling.
+For the executable implementation, see `workflows/financial-anomaly-final-v1.json`.
