@@ -5,7 +5,13 @@ An automated financial transaction anomaly detection prototype built using Pytho
 ## Project Overview
 
 This project processes a synthetic financial transaction dataset, identifies anomalous transactions, generates AI explanations, stores alerts in PostgreSQL, and sends email notifications through n8n.
+## n8n Workflow Architecture
 
+![Financial Anomaly Detection Workflow](screenshots/financial_anomaly_workflow.png)
+
+The workflow orchestrates transaction processing, PostgreSQL storage,
+AI-generated anomaly explanations using Ollama, and Gmail alerts
+with success and failure logging.
 ## Technology Stack
 
 - Python and Pandas
