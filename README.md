@@ -5,6 +5,8 @@ An automated financial transaction anomaly detection prototype built using Pytho
 ## Project Overview
 
 This project processes a synthetic financial transaction dataset, identifies anomalous transactions, generates AI explanations, stores alerts in PostgreSQL, and sends email notifications through n8n.
+
+
 ## n8n Workflow Architecture
 
 ![Financial Anomaly Detection Workflow](screenshots/financial_anomaly_workflow.png)
@@ -12,6 +14,36 @@ This project processes a synthetic financial transaction dataset, identifies ano
 The workflow orchestrates transaction processing, PostgreSQL storage,
 AI-generated anomaly explanations using Ollama, and Gmail alerts
 with success and failure logging.
+
+## Project Documentation
+
+This repository contains a complete technical report, project presentation, and end-to-end architecture diagram for the AI-powered financial transaction anomaly detection pipeline.
+
+### Architecture Diagram
+
+![End-to-End Financial Anomaly Detection Architecture](screenshots/financial_anomaly_architecture.png)
+
+### Documentation and Presentation
+
+- [Complete Project Documentation (PDF)](docs/Financial_Anomaly_Detection_Project_Documentation.pdf)
+- [Project Presentation (PowerPoint)](docs/Financial_Anomaly_Detection_Project_Presentation.pptx)
+- [n8n Workflow JSON](workflows/financial-anomaly-final-v1.json)
+
+### End-to-End Workflow
+
+1. Generate 1,000 synthetic financial transactions.
+2. Validate dataset quality and integrity.
+3. Detect anomalies using Isolation Forest.
+4. Expose anomaly results through FastAPI.
+5. Orchestrate processing using n8n.
+6. Save transaction and alert records to PostgreSQL.
+7. Generate AI explanations with Ollama.
+8. Send Gmail alerts and record delivery success or failure.
+
+**Final outputs:** PostgreSQL transaction/alert records and Gmail notifications with delivery status tracking.
+
+**Note:** This project uses synthetic batch data and is not a production real-time fraud detection system.
+
 ## Technology Stack
 
 - Python and Pandas
