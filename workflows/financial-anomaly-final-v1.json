@@ -1,0 +1,742 @@
+{
+  "name": "Financial Anomaly Detection - Final V1",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        -272
+      ],
+      "id": "550ffebd-f3fb-4117-8556-ee9eead08d1d",
+      "name": "When clicking \u2018Execute workflow\u2019"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/detect-anomalies",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -592,
+        -144
+      ],
+      "id": "e076c672-2ae1-4999-8972-02359b10dcbe",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9f7bc821-a228-4584-83d5-d8c33a5e0e30",
+              "leftValue": "={{ $json.detected_anomalies }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -480,
+        96
+      ],
+      "id": "70f52dcf-618b-47eb-a1e5-ef5681d579c3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "anomalies",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        64
+      ],
+      "id": "e4e397fb-75d2-4876-9576-14a82dd36550",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8000/validate-data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -432,
+        -336
+      ],
+      "id": "bcf1c358-c563-4370-bb40-325906c66ed1",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9aa325aa-078c-4f2d-8547-dafa5214c9ea",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "passed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        -320
+      ],
+      "id": "cee7ae26-99bc-4d42-ba1c-ec861aeec102",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "detected_anomalies",
+          "mode": "list",
+          "cachedResultName": "detected_anomalies"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "transaction_id": "={{ $json.transaction_id }}",
+            "amount": "={{ $json.amount }}",
+            "transaction_hour": "={{ $json.hour }}",
+            "anomaly_score": "={{ $json.anomaly_score }}"
+          },
+          "matchingColumns": [
+            "transaction_id"
+          ],
+          "schema": [
+            {
+              "id": "transaction_id",
+              "displayName": "transaction_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transaction_hour",
+              "displayName": "transaction_hour",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "anomaly_score",
+              "displayName": "anomaly_score",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "detected_at",
+              "displayName": "detected_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        -16,
+        -128
+      ],
+      "id": "65e328fb-ff39-4872-8870-cba6eb1dde26",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "cqeR5XAfo0iCWAIW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        400,
+        64
+      ],
+      "id": "793d0d6a-0c82-46c7-88fb-9c2d29adf718",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    model: \"llama3.2:3b\",\n    stream: false,\n    prompt: `You are a financial transaction anomaly analyst.\n\nTransaction ID: ${$json.transaction_id}\nTransaction amount: $${$json.amount}\nTransaction hour: ${$json.transaction_hour}\nIsolation Forest anomaly score: ${$json.anomaly_score}\n\nExplain in 2-3 sentences why this transaction may warrant investigation.\n\nImportant rules:\n- Use only the provided transaction details.\n- Do not assume or claim fraud.\n- Do not invent customer history or average transaction amounts.\n- The Isolation Forest anomaly score is NOT a percentage.\n- Do not convert the anomaly score into a percentage.\n- Do not interpret the score as a fraud probability.\n- Do not assume a higher score always means a more anomalous transaction.\n- Mention that the transaction amount and time may warrant review, but additional context is required.\n- Keep the explanation professional and under 80 words.`\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        752,
+        64
+      ],
+      "id": "3c360856-f4d0-4f98-8f43-4055569c9ab2",
+      "name": "Ollama AI Explanation"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "699fdcff-2b4c-43a2-b478-79d0e22947ca",
+              "name": "alert_type",
+              "value": "FINANCIAL_ANOMALY",
+              "type": "string"
+            },
+            {
+              "id": "47d60b42-28c5-4afc-982b-96902f4dd692",
+              "name": "transaction_id",
+              "value": "={{ $('Limit').item.json.transaction_id }}",
+              "type": "string"
+            },
+            {
+              "id": "98177982-42d2-4b1a-a057-fb6f42e96128",
+              "name": "amount",
+              "value": "={{ $('Limit').item.json.amount }}",
+              "type": "number"
+            },
+            {
+              "id": "413dea4d-e319-44d0-86ff-ee686dc27f06",
+              "name": "anomaly_score",
+              "value": "={{ $('Limit').item.json.anomaly_score }}",
+              "type": "number"
+            },
+            {
+              "id": "da8f61d9-14cf-4631-9c94-dc56491879a3",
+              "name": "ai_explanation",
+              "value": "={{ $json.response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        960,
+        -400
+      ],
+      "id": "f6d9feb5-d189-400b-894a-dcee2227d204",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "anomaly_alerts",
+          "mode": "list",
+          "cachedResultName": "anomaly_alerts"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "transaction_id": "={{ $json.transaction_id }}",
+            "alert_type": "={{ $json.alert_type }}",
+            "amount": "={{ $json.amount }}",
+            "anomaly_score": "={{ $json.anomaly_score }}",
+            "ai_explanation": "={{ $json.ai_explanation }}"
+          },
+          "matchingColumns": [
+            "transaction_id"
+          ],
+          "schema": [
+            {
+              "id": "transaction_id",
+              "displayName": "transaction_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "alert_type",
+              "displayName": "alert_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "anomaly_score",
+              "displayName": "anomaly_score",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "ai_explanation",
+              "displayName": "ai_explanation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1104,
+        64
+      ],
+      "id": "6d6d3917-8591-4128-9619-532ede2363a1",
+      "name": "Insert or update rows in a table1",
+      "credentials": {
+        "postgres": {
+          "id": "cqeR5XAfo0iCWAIW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -688,
+        -528
+      ],
+      "id": "6c562c5c-f863-45c9-be45-95d23e913ecb",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    d.transaction_id,\n    d.amount,\n    d.transaction_hour,\n    d.anomaly_score\nFROM detected_anomalies AS d\nLEFT JOIN anomaly_alerts AS a\n    ON d.transaction_id = a.transaction_id\nWHERE a.transaction_id IS NULL\nORDER BY d.anomaly_score DESC\nLIMIT 2;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        176,
+        80
+      ],
+      "id": "345e84b9-50c9-465b-b4c5-cf0c00b6d0d8",
+      "name": "Execute a SQL query",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "cqeR5XAfo0iCWAIW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "={{ \"Financial Anomaly Alert - \" + $json.transaction_id }}",
+        "emailType": "text",
+        "message": "={{ `FINANCIAL TRANSACTION ANOMALY ALERT  Transaction ID: ${$json.transaction_id}  Amount: $${$json.amount}  Anomaly Score: ${$json.anomaly_score}  AI Explanation: ${$json.ai_explanation}  This transaction was flagged for review by the anomaly detection pipeline.  Generated by n8n + Python + Isolation Forest + Ollama.` }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        64
+      ],
+      "id": "dca03a03-5361-4f08-bbcc-95fc991b1b95",
+      "name": "Send a message",
+      "webhookId": "7c678457-d28a-4660-b2b1-467e01826106",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Dxoft7j31RrYkV5w",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    COUNT(*) AS total_anomalies,\n    COUNT(*) FILTER (\n        WHERE detected_at >= TIMESTAMPTZ\n        '2026-10-31 00:00:00 America/Chicago'\n    ) AS after_cutoff,\n    MIN(detected_at) AS earliest_detection,\n    MAX(detected_at) AS latest_detection\nFROM public.detected_anomalies;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1408,
+        -416
+      ],
+      "id": "6634c99f-bbc6-49bc-9697-58c4c930a56a",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "cqeR5XAfo0iCWAIW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE public.anomaly_alerts\nSET email_claimed_at = NOW()\nWHERE transaction_id = $1\n  AND email_sent = FALSE\n  AND email_claimed_at IS NULL\nRETURNING\n    transaction_id,\n    alert_type,\n    amount,\n    anomaly_score,\n    ai_explanation,\n    email_sent;",
+        "options": {
+          "queryReplacement": "={{ [ $json.transaction_id ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1328,
+        64
+      ],
+      "id": "1212d4f6-9b25-419b-aff8-e00a5bbc7cca",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "cqeR5XAfo0iCWAIW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH updated AS (\n    UPDATE public.anomaly_alerts\n    SET email_sent = TRUE,\n        notification_error = NULL\n    WHERE transaction_id = $1\n      AND email_sent = FALSE\n      AND email_claimed_at IS NOT NULL\n    RETURNING transaction_id\n)\nSELECT\n    COUNT(*)::integer AS updated_count,\n    MAX(transaction_id) AS updated_transaction_id\nFROM updated;",
+        "options": {
+          "queryReplacement": "={{ [ $('Execute a SQL query2').item.json.transaction_id ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1776,
+        -160
+      ],
+      "id": "72efce93-2f21-432e-baea-4582597b2180",
+      "name": "Execute a SQL query3",
+      "credentials": {
+        "postgres": {
+          "id": "cqeR5XAfo0iCWAIW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE public.anomaly_alerts\nSET notification_error = $2\nWHERE transaction_id = $1\n  AND email_sent = FALSE\n  AND email_claimed_at IS NOT NULL\nRETURNING transaction_id, notification_error;\n",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{\n  [\n    $('Execute a SQL query2').item.json.transaction_id,\n    $json.error?.message || $json.message || 'Gmail delivery failed \u2014 review before retrying'\n  ]\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1760,
+        192
+      ],
+      "id": "8ab93f08-52a8-41cd-9155-047bf935eeb2",
+      "name": "Log Gmail Failure",
+      "credentials": {
+        "postgres": {
+          "id": "cqeR5XAfo0iCWAIW",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking \u2018Execute workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Ollama AI Explanation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama AI Explanation": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table1": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Gmail Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8404cc99-79dd-4250-80d1-ed064ed98707",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "48a58ec404bb82e5590a0280b65e24d8512922eadd4d158541ef9a4a9001e936"
+  },
+  "nodeGroups": [],
+  "id": "D169DwSwuC3lilOJ",
+  "tags": []
+}
