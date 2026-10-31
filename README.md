@@ -86,6 +86,46 @@ Metrics were calculated against synthetic anomaly labels on the same dataset use
 7. Configure PostgreSQL and Gmail credentials.
 8. Test the workflow manually before enabling scheduling.
 
+## n8n Integration Configuration
+
+The automation uses Docker-hosted n8n and PostgreSQL, a local FastAPI service, and Ollama for AI-generated anomaly explanations.
+
+### Local service endpoints
+
+| Service | Endpoint |
+|---|---|
+| n8n editor | `http://localhost:5678` |
+| FastAPI | `http://localhost:8000` |
+| Anomaly detection API | `http://host.docker.internal:8000/detect-anomalies` |
+| Ollama from Docker | `http://host.docker.internal:11434/api/generate` |
+
+`host.docker.internal` allows the n8n Docker container to communicate with services running on the host Mac.
+
+### Start the Python API
+
+Activate the virtual environment and start FastAPI:
+
+```bash
+source .venv/bin/activate
+uvicorn src.api:app --reload --port 8000
+```
+
+### Import and configure the workflow
+
+1. Start Docker Desktop, n8n, PostgreSQL, and Ollama.
+2. Open the n8n editor at `http://localhost:5678`.
+3. Import `workflows/financial-anomaly-final-v1.json`.
+4. Configure the PostgreSQL credential using the database service's hostname, port, database, username, and password.
+5. Configure the Gmail OAuth credential and replace the exported recipient placeholder with your intended notification address.
+6. Confirm that Ollama has the `llama3.2:3b` model available.
+7. Execute the workflow manually and inspect the PostgreSQL and Gmail branches before enabling automatic scheduling.
+
+### Scheduling and delivery limitations
+
+The workflow supports daily scheduling, but the published project does not claim that live scheduling is enabled. Because the prototype processes a static dataset, repeatedly running it can reprocess the same transactions. Email claiming reduces duplicate attempts, but exactly-once delivery is not guaranteed.
+
+This is a local demonstration pipeline, not a production-ready financial monitoring service.
+
 ## Limitations
 
 - Processes a static synthetic CSV dataset.
